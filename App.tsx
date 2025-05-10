@@ -59,7 +59,7 @@ const App = (): React.JSX.Element => {
     return () => clearInterval(interval);
   }, [mqttClient, location]);
   useEffect(() => {
-    const host = "164.8.211.101";
+    const host = "100.117.101.70";
 
     const port = 1883;
 

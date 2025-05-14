@@ -1,5 +1,5 @@
 {
-  "name": "NPOProjekt",
+  "name": "npoprojekt",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -11,6 +11,11 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.1.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.14.3",
+    "mqtt": "^5.13.0",
     "react": "19.0.0",
     "react_native_mqtt": "^1.3.1",
     "react-native": "0.79.1",
@@ -38,5 +43,18 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "description": "This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnejaAnejTim/NPOProjekt.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AnejaAnejTim/NPOProjekt/issues"
+  },
+  "homepage": "https://github.com/AnejaAnejTim/NPOProjekt#readme"
 }

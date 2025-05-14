@@ -30,6 +30,21 @@ const App = (): React.JSX.Element => {
   const [connectionStatus, setConnectionStatus] = useState("Disconnected");
   const [mqttClient, setMqttClient] = useState(null);
 
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadDeviceId = async () => {
+      let id = await AsyncStorage.getItem("deviceId");
+      if (!id) {
+        id = "device_" + Math.random().toString(36).substring(2, 10);
+        await AsyncStorage.setItem("deviceId", id);
+      }
+      setDeviceId(id);
+    };
+    loadDeviceId();
+  }, []);
+
+
   const fetchLocation = () => {
     GetLocation.getCurrentPosition({
       enableHighAccuracy: true,
@@ -116,19 +131,21 @@ const App = (): React.JSX.Element => {
   }, [location, mqttClient]);
 
   const publishLocation = (client, locationData) => {
-    if (client && client.isConnected()) {
+    if (client && client.isConnected() && deviceId) {
       const message = new Paho.MQTT.Message(
         JSON.stringify({
+          deviceId: deviceId,
           latitude: locationData.latitude,
           longitude: locationData.longitude,
           timestamp: new Date().toISOString(),
-        }),
+        })
       );
       message.destinationName = "device/location";
       client.send(message);
       console.log("Location published to MQTT");
     }
   };
+
 
   const reconnect = () => {
     const host = "100.117.101.70";

@@ -131,25 +131,54 @@ const HomeScreen = ({ navigation }): React.JSX.Element => {
     }
   }, [location, mqttClient]);
 
-  const publishLocation = (client, locationData) => {
-    if (client && client.isConnected() && deviceId) {
-      const message = new Paho.MQTT.Message(
-        JSON.stringify({
-          deviceId: deviceId,
-          latitude: locationData.latitude,
-          longitude: locationData.longitude,
-          timestamp: new Date().toISOString(),
-        })
-      );
-      message.destinationName = "device/location";
-      client.send(message);
-      console.log("Location published to MQTT");
-    }
-  };
+ const publishLocation = async (client, locationData) => {
+   try {
+     const user = await AsyncStorage.getItem("userId");
+     if (client && client.isConnected() && deviceId && user) {
+       const message = new Paho.MQTT.Message(
+         JSON.stringify({
+           deviceId: deviceId,
+           latitude: locationData.latitude,
+           longitude: locationData.longitude,
+           timestamp: new Date().toISOString(),
+           user: user,
+         })
+       );
+       message.destinationName = "device/location";
+       client.send(message);
+       console.log("📡 Location published to MQTT");
+     } else {
+       console.warn("Missing MQTT connection, deviceId, or user");
+     }
+   } catch (err) {
+     console.error("Napaka pri pošiljanju lokacije:", err);
+   }
+ };
 
-const logout = async () => {
-  await AsyncStorage.removeItem("deviceId");
-  navigation.replace("Login");
+const handleLogout = async () => {
+  try {
+    const userId = await AsyncStorage.getItem("userId");
+
+    if (userId) {
+      await fetch("http://100.117.101.70:3001/users/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      await AsyncStorage.removeItem("userId");
+    }
+
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
+  } catch (err) {
+    console.error("Napaka pri odjavi:", err);
+    Alert.alert("Napaka", "Pri odjavi je prišlo do napake.");
+  }
 };
 
 const reconnect = () => {
@@ -324,7 +353,7 @@ const reconnect = () => {
             alignItems: "center",
             justifyContent: "center"
           }}
-          onPress={logout}
+          onPress={handleLogout}
         >
           <Text
             style={{

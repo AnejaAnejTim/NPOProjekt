@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mqtt = require('mqtt');
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 const cors = require('cors');
 
 const app = express();
@@ -18,8 +19,8 @@ const Location = mongoose.model('Location', {
   latitude: Number,
   longitude: Number,
   timestamp: Date,
+  user: Schema.Types.ObjectId
 });
-
 
 app.use(cors());
 app.use(express.json());
@@ -36,12 +37,13 @@ const activeDevices = new Map();
 client.on('message', async (topic, message) => {
   try {
     const data = JSON.parse(message.toString());
-    const { deviceId, latitude, longitude, timestamp } = data;
+    const { deviceId, latitude, longitude, timestamp, user } = data;
     await Location.create({
       deviceId,
       latitude,
       longitude,
       timestamp: timestamp ? new Date(timestamp) : new Date(),
+      user
     });
     activeDevices.set(deviceId, Date.now());
   } catch (err) {

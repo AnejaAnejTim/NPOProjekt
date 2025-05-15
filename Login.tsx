@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Text,
@@ -22,10 +23,9 @@ const Login = ({ navigation }): React.JSX.Element => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-
       const data = await res.json();
-
       if (res.status === 200 && data.username) {
+          await AsyncStorage.setItem("userId", data._id);
         Alert.alert("Prijava uspešna", "Pozdravljeni, " + username + "!");
         navigation.navigate("Home");
       } else {

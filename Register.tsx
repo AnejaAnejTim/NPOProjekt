@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -7,20 +7,20 @@ import {
   StyleSheet,
   useColorScheme,
   Alert,
-} from "react-native";
+} from 'react-native';
 
-const Register = ({ navigation }): React.JSX.Element => {
-  const isDarkMode = useColorScheme() === "dark";
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+const Register = ({navigation}): React.JSX.Element => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
 
   const handleRegister = async () => {
     try {
-      const res = await fetch("http://100.117.101.70:3001/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('http://100.117.101.70:3001/users', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           email: email,
           username: username,
@@ -31,16 +31,16 @@ const Register = ({ navigation }): React.JSX.Element => {
       const data = await res.json();
 
       if (data._id) {
-        Alert.alert("Registracija uspešna", "Sedaj se lahko prijavite.");
-        navigation.navigate("Login");
+        Alert.alert('Registracija uspešna', 'Sedaj se lahko prijavite.');
+        navigation.navigate('Login');
       } else {
-        setUsername("");
-        setPassword("");
-        setEmail("");
-        setError("Registracija ni uspela");
+        setUsername('');
+        setPassword('');
+        setEmail('');
+        setError('Registracija ni uspela');
       }
     } catch (err) {
-      setError("Napaka pri registraciji");
+      setError('Napaka pri registraciji');
       console.error(err);
     }
   };
@@ -49,26 +49,24 @@ const Register = ({ navigation }): React.JSX.Element => {
     <View
       style={[
         styles.container,
-        { backgroundColor: isDarkMode ? "#121212" : "#f9fafb" },
-      ]}
-    >
+        {backgroundColor: isDarkMode ? '#121212' : '#f9fafb'},
+      ]}>
       <View
         style={[
           styles.card,
-          { backgroundColor: isDarkMode ? "#333" : "#fff" },
+          {backgroundColor: isDarkMode ? '#333' : '#fff'},
           isDarkMode ? styles.shadowDark : styles.shadowLight,
-        ]}
-      >
-        <Text style={[styles.title, { color: "#b0d16b" }]}>Registracija</Text>
+        ]}>
+        <Text style={[styles.title, {color: '#b0d16b'}]}>Registracija</Text>
 
         <TextInput
           placeholder="Email"
-          placeholderTextColor={isDarkMode ? "#aaa" : "#666"}
+          placeholderTextColor={isDarkMode ? '#aaa' : '#666'}
           style={[
             styles.input,
             {
-              color: isDarkMode ? "white" : "black",
-              borderColor: isDarkMode ? "#555" : "#ccc",
+              color: isDarkMode ? 'white' : 'black',
+              borderColor: isDarkMode ? '#555' : '#ccc',
             },
           ]}
           value={email}
@@ -79,12 +77,12 @@ const Register = ({ navigation }): React.JSX.Element => {
 
         <TextInput
           placeholder="Uporabniško ime"
-          placeholderTextColor={isDarkMode ? "#aaa" : "#666"}
+          placeholderTextColor={isDarkMode ? '#aaa' : '#666'}
           style={[
             styles.input,
             {
-              color: isDarkMode ? "white" : "black",
-              borderColor: isDarkMode ? "#555" : "#ccc",
+              color: isDarkMode ? 'white' : 'black',
+              borderColor: isDarkMode ? '#555' : '#ccc',
             },
           ]}
           value={username}
@@ -94,12 +92,12 @@ const Register = ({ navigation }): React.JSX.Element => {
 
         <TextInput
           placeholder="Geslo"
-          placeholderTextColor={isDarkMode ? "#aaa" : "#666"}
+          placeholderTextColor={isDarkMode ? '#aaa' : '#666'}
           style={[
             styles.input,
             {
-              color: isDarkMode ? "white" : "black",
-              borderColor: isDarkMode ? "#555" : "#ccc",
+              color: isDarkMode ? 'white' : 'black',
+              borderColor: isDarkMode ? '#555' : '#ccc',
             },
           ]}
           value={password}
@@ -115,18 +113,16 @@ const Register = ({ navigation }): React.JSX.Element => {
             !(email && username && password) && styles.disabled,
           ]}
           onPress={handleRegister}
-          disabled={!(email && username && password)}
-        >
+          disabled={!(email && username && password)}>
           <Text style={styles.buttonText}>Registracija</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
           <Text
             style={[
               styles.loginLink,
-              { color: isDarkMode ? "#66ccff" : "#003366" },
-            ]}
-          >
+              {color: isDarkMode ? '#66ccff' : '#003366'},
+            ]}>
             Že imate račun? Prijavite se tukaj
           </Text>
         </TouchableOpacity>
@@ -140,64 +136,64 @@ export default Register;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: "5%",
-    justifyContent: "center",
-    alignItems: "center",
+    padding: '5%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   card: {
-    width: "100%",
+    width: '100%',
     maxWidth: 400,
     borderRadius: 12,
     padding: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
   shadowLight: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 5,
   },
   shadowDark: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 10,
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 20,
   },
   input: {
-    width: "100%",
+    width: '100%',
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
   },
   button: {
-    backgroundColor: "#b0d16b",
+    backgroundColor: '#b0d16b',
     padding: 12,
     borderRadius: 8,
-    width: "100%",
-    alignItems: "center",
+    width: '100%',
+    alignItems: 'center',
     marginBottom: 12,
   },
   disabled: {
-    backgroundColor: "#ccc",
+    backgroundColor: '#ccc',
   },
   buttonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: 'white',
+    fontWeight: 'bold',
     fontSize: 16,
   },
   loginLink: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
   },
   error: {
-    color: "red",
+    color: 'red',
     marginBottom: 12,
-    textAlign: "center",
+    textAlign: 'center',
   },
 });

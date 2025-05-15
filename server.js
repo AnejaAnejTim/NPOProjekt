@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mqtt = require('mqtt');
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const {Schema} = mongoose;
 const cors = require('cors');
 
 const app = express();
@@ -13,13 +13,12 @@ mongoose.connect(process.env.MONGO_URI, {
   useUnifiedTopology: true,
 });
 
-
 const Location = mongoose.model('Location', {
   deviceId: String,
   latitude: Number,
   longitude: Number,
   timestamp: Date,
-  user: Schema.Types.ObjectId
+  user: Schema.Types.ObjectId,
 });
 
 app.use(cors());
@@ -37,13 +36,13 @@ const activeDevices = new Map();
 client.on('message', async (topic, message) => {
   try {
     const data = JSON.parse(message.toString());
-    const { deviceId, latitude, longitude, timestamp, user } = data;
+    const {deviceId, latitude, longitude, timestamp, user} = data;
     await Location.create({
       deviceId,
       latitude,
       longitude,
       timestamp: timestamp ? new Date(timestamp) : new Date(),
-      user
+      user,
     });
     activeDevices.set(deviceId, Date.now());
   } catch (err) {
@@ -61,15 +60,17 @@ setInterval(() => {
 }, 60 * 1000);
 
 app.get('/api/locations', async (req, res) => {
-  const data = await Location.find().sort({ timestamp: -1 }).limit(100);
+  const data = await Location.find().sort({timestamp: -1}).limit(100);
   res.json(data);
 });
 
 app.get('/api/active-devices', (req, res) => {
-  res.json({ count: activeDevices.size, devices: Array.from(activeDevices.keys()) });
+  res.json({
+    count: activeDevices.size,
+    devices: Array.from(activeDevices.keys()),
+  });
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Server teče na http://localhost:${PORT}`);
 });
-

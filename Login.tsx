@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, {useState} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -8,32 +8,32 @@ import {
   StyleSheet,
   useColorScheme,
   Alert,
-} from "react-native";
+} from 'react-native';
 
-const Login = ({ navigation }): React.JSX.Element => {
-  const isDarkMode = useColorScheme() === "dark";
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+const Login = ({navigation}): React.JSX.Element => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("http://100.117.101.70:3001/users/appLogin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+      const res = await fetch('http://100.117.101.70:3001/users/appLogin', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password}),
       });
       const data = await res.json();
       if (res.status === 200 && data.username) {
-          await AsyncStorage.setItem("userId", data._id);
-        Alert.alert("Prijava uspešna", "Pozdravljeni, " + username + "!");
-        navigation.navigate("Home");
+        await AsyncStorage.setItem('userId', data._id);
+        Alert.alert('Prijava uspešna', 'Pozdravljeni, ' + username + '!');
+        navigation.navigate('Home');
       } else {
-        setError("Napačno uporabniško ime ali geslo");
+        setError('Napačno uporabniško ime ali geslo');
       }
     } catch (err) {
       console.error(err);
-      setError("Napaka pri prijavi");
+      setError('Napaka pri prijavi');
     }
   };
 
@@ -41,22 +41,26 @@ const Login = ({ navigation }): React.JSX.Element => {
     <View
       style={[
         styles.container,
-        { backgroundColor: isDarkMode ? "#121212" : "#f9fafb" },
-      ]}
-    >
+        {backgroundColor: isDarkMode ? '#121212' : '#f9fafb'},
+      ]}>
       <View
         style={[
           styles.card,
-          { backgroundColor: isDarkMode ? "#333" : "#fff" },
+          {backgroundColor: isDarkMode ? '#333' : '#fff'},
           isDarkMode ? styles.shadowDark : styles.shadowLight,
-        ]}
-      >
-        <Text style={[styles.title, { color: "#b0d16b" }]}>Prijava</Text>
+        ]}>
+        <Text style={[styles.title, {color: '#b0d16b'}]}>Prijava</Text>
 
         <TextInput
           placeholder="Uporabniško ime"
-          placeholderTextColor={isDarkMode ? "#aaa" : "#666"}
-          style={[styles.input, { color: isDarkMode ? "white" : "black", borderColor: isDarkMode ? "#555" : "#ccc" }]}
+          placeholderTextColor={isDarkMode ? '#aaa' : '#666'}
+          style={[
+            styles.input,
+            {
+              color: isDarkMode ? 'white' : 'black',
+              borderColor: isDarkMode ? '#555' : '#ccc',
+            },
+          ]}
           value={username}
           onChangeText={setUsername}
           autoCapitalize="none"
@@ -64,35 +68,34 @@ const Login = ({ navigation }): React.JSX.Element => {
 
         <TextInput
           placeholder="Geslo"
-          placeholderTextColor={isDarkMode ? "#aaa" : "#666"}
-          style={[styles.input, { color: isDarkMode ? "white" : "black", borderColor: isDarkMode ? "#555" : "#ccc" }]}
+          placeholderTextColor={isDarkMode ? '#aaa' : '#666'}
+          style={[
+            styles.input,
+            {
+              color: isDarkMode ? 'white' : 'black',
+              borderColor: isDarkMode ? '#555' : '#ccc',
+            },
+          ]}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
 
-        {error ? (
-          <Text style={styles.error}>{error}</Text>
-        ) : null}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TouchableOpacity
-          style={[
-            styles.button,
-            !(username && password) && styles.disabled,
-          ]}
+          style={[styles.button, !(username && password) && styles.disabled]}
           onPress={handleLogin}
-          disabled={!(username && password)}
-        >
+          disabled={!(username && password)}>
           <Text style={styles.buttonText}>Prijava</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text
             style={[
               styles.registerLink,
-              { color: isDarkMode ? "#66ccff" : "#003366" },
-            ]}
-          >
+              {color: isDarkMode ? '#66ccff' : '#003366'},
+            ]}>
             Nimate računa? Registrirajte se tukaj
           </Text>
         </TouchableOpacity>
@@ -106,64 +109,64 @@ export default Login;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: "5%",
-    justifyContent: "center",
-    alignItems: "center",
+    padding: '5%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   card: {
-    width: "100%",
+    width: '100%',
     maxWidth: 400,
     borderRadius: 12,
     padding: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
   shadowLight: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 5,
   },
   shadowDark: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 10,
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 20,
   },
   input: {
-    width: "100%",
+    width: '100%',
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
   },
   button: {
-    backgroundColor: "#b0d16b",
+    backgroundColor: '#b0d16b',
     padding: 12,
     borderRadius: 8,
-    width: "100%",
-    alignItems: "center",
+    width: '100%',
+    alignItems: 'center',
     marginBottom: 12,
   },
   disabled: {
-    backgroundColor: "#ccc",
+    backgroundColor: '#ccc',
   },
   buttonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: 'white',
+    fontWeight: 'bold',
     fontSize: 16,
   },
   registerLink: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
   },
   error: {
-    color: "red",
+    color: 'red',
     marginBottom: 12,
-    textAlign: "center",
+    textAlign: 'center',
   },
 });

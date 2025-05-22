@@ -17,33 +17,45 @@ const Register = ({navigation}): React.JSX.Element => {
   const [error, setError] = useState('');
 
   const handleRegister = async () => {
-    try {
-      const res = await fetch('http://100.117.101.70:3001/users', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          email: email,
-          username: username,
-          password: password,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data._id) {
-        Alert.alert('Registracija uspešna', 'Sedaj se lahko prijavite.');
-        navigation.navigate('Login');
-      } else {
-        setUsername('');
-        setPassword('');
-        setEmail('');
-        setError('Registracija ni uspela');
-      }
-    } catch (err) {
-      setError('Napaka pri registraciji');
-      console.error(err);
-    }
+  const isValidEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
   };
+
+  if (!isValidEmail(email)) {
+    setError('Prosim vnesite veljaven email naslov.');
+    return;
+  }
+
+  try {
+    const res = await fetch('http://100.117.101.70:3001/users', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email,
+        username,
+        password,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 409) {
+      setError('Uporabnik že obstaja');
+    } else if (res.ok && data._id) {
+      Alert.alert('Registracija uspešna', 'Sedaj se lahko prijavite.');
+      navigation.navigate('Login');
+    } else {
+      setUsername('');
+      setPassword('');
+      setEmail('');
+      setError(data.message || 'Registracija ni uspela');
+    }
+  } catch (err) {
+    setError('Napaka pri registraciji');
+    console.error(err);
+  }
+};
 
   return (
     <View

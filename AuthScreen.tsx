@@ -1,14 +1,26 @@
-import React, {useEffect} from 'react';
-import {View, ActivityIndicator, StyleSheet} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useContext } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { UserContext } from './userContext';
 
-const AuthScreen = ({navigation}) => {
+const AuthScreen = ({ navigation }) => {
+  const context = useContext(UserContext);
+
   useEffect(() => {
-    const checkLogin = async () => {
-      const userId = await AsyncStorage.getItem('userId');
-      navigation.replace(userId ? 'Home' : 'Login');
+    const bootstrap = async () => {
+      if (!context) return;
+
+      const { refreshUser, user } = context;
+
+      await refreshUser();
+
+      if (context.user) {
+        navigation.replace('Home');
+      } else {
+        navigation.replace('Login');
+      }
     };
-    checkLogin();
+
+    bootstrap();
   }, []);
 
   return (

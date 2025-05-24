@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { UserContext } from './userContext';
 import GetLocation from 'react-native-get-location';
 import init from 'react_native_mqtt';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,16 +18,20 @@ init({
   sync: {},
 });
 
-const HomeScreen = ({navigation}): React.JSX.Element => {
+const HomeScreen = ({ navigation }) => {
   const isDarkMode = useColorScheme() === 'dark';
-  const [location, setLocation] = useState<null | {
-    latitude: number;
-    longitude: number;
-  }>(null);
+
+  const { user, token, refreshUser, setUser, loading } = useContext(UserContext);
+
+  const [location, setLocation] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [mqttClient, setMqttClient] = useState(null);
+  const [deviceId, setDeviceId] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  const [deviceId, setDeviceId] = useState<string | null>(null);
+  useEffect(() => {
+    setAuthChecked(true);
+  }, []);
 
   useEffect(() => {
     const loadDeviceId = async () => {
@@ -58,8 +63,10 @@ const HomeScreen = ({navigation}): React.JSX.Element => {
   };
 
   useEffect(() => {
-    fetchLocation();
-  }, []);
+    if (authChecked) {
+      fetchLocation();
+    }
+  }, [authChecked]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -72,6 +79,8 @@ const HomeScreen = ({navigation}): React.JSX.Element => {
   }, [mqttClient, location]);
 
   useEffect(() => {
+    if (!authChecked) return;
+
     const host = '100.117.101.70';
     const wsPort = 9001;
     const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8);
@@ -117,7 +126,7 @@ const HomeScreen = ({navigation}): React.JSX.Element => {
         mqttClient.disconnect();
       }
     };
-  }, []);
+  }, [authChecked]);
 
   useEffect(() => {
     if (mqttClient && location && mqttClient.isConnected()) {
@@ -127,15 +136,15 @@ const HomeScreen = ({navigation}): React.JSX.Element => {
 
   const publishLocation = async (client, locationData) => {
     try {
-      const user = await AsyncStorage.getItem('userId');
-      if (client && client.isConnected() && deviceId && user) {
+      const userId = await AsyncStorage.getItem('userId');
+      if (client && client.isConnected() && deviceId && userId) {
         const message = new Paho.MQTT.Message(
           JSON.stringify({
             deviceId: deviceId,
             latitude: locationData.latitude,
             longitude: locationData.longitude,
             timestamp: new Date().toISOString(),
-            user: user,
+            user: userId,
           }),
         );
         message.destinationName = 'device/location';
@@ -164,6 +173,9 @@ const HomeScreen = ({navigation}): React.JSX.Element => {
 
         await AsyncStorage.removeItem('userId');
       }
+
+      await AsyncStorage.removeItem('token');
+      setUser(null);
 
       navigation.reset({
         index: 0,
@@ -216,6 +228,22 @@ const HomeScreen = ({navigation}): React.JSX.Element => {
       setConnectionStatus(`Reconnect error: ${error.message}`);
     }
   };
+
+  // Show loading screen while authentication is being checked
+  if (loading || !authChecked) {
+    return (
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+      }}>
+        <Text style={{ color: isDarkMode ? 'white' : 'black' }}>
+          Loading...
+        </Text>
+      </View>
+    );
+  }
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -295,7 +323,6 @@ const HomeScreen = ({navigation}): React.JSX.Element => {
           <TouchableOpacity
             style={{
               backgroundColor: '#b0d16b',
-              padding: 10,
               padding: 10,
               borderRadius: 8,
               alignItems: 'center',

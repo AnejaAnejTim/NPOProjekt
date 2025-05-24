@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -7,27 +7,46 @@ import {
   TouchableOpacity,
   StyleSheet,
   useColorScheme,
-  Alert,
 } from 'react-native';
+import { UserContext } from './userContext';
 
-const Login = ({navigation}): React.JSX.Element => {
+const Login = ({ navigation }) => {
   const isDarkMode = useColorScheme() === 'dark';
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const { user, setUser, refreshUser, loading } = useContext(UserContext)!;
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (user) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
+    }
+  }, [user, loading, navigation]);
+
   const handleLogin = async () => {
+    setError('');
     try {
       const res = await fetch('http://100.117.101.70:3001/users/appLogin', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username, password}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
       });
+
       const data = await res.json();
-      if (res.status === 200 && data.username) {
-        await AsyncStorage.setItem('userId', data._id);
-        Alert.alert('Prijava uspešna', 'Pozdravljeni, ' + username + '!');
-        navigation.navigate('Home');
+
+      if (res.status === 200 && data.token && data.user) {
+        await AsyncStorage.setItem('token', data.token);
+        setUser(data.user);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        });
       } else {
         setError('Napačno uporabniško ime ali geslo');
       }
@@ -36,6 +55,20 @@ const Login = ({navigation}): React.JSX.Element => {
       setError('Napaka pri prijavi');
     }
   };
+
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          {backgroundColor: isDarkMode ? '#121212' : '#f9fafb'},
+        ]}>
+        <Text style={{color: isDarkMode ? 'white' : 'black'}}>
+          Loading...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View

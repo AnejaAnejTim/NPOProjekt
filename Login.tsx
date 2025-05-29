@@ -32,7 +32,7 @@ const Login = ({ navigation }) => {
   const handleLogin = async () => {
     setError('');
     try {
-      const res = await fetch('http://100.76.67.50:3001/users/appLogin', {
+      const res = await fetch('http://100.117.101.70:3001/users/appLogin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -42,6 +42,8 @@ const Login = ({ navigation }) => {
 
       if (res.status === 200 && data.token && data.user) {
         await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem('userId', data.user.id || data.user._id || String(data.user.userId));
+        console.log(data.user);
         setUser(data.user);
         navigation.reset({
           index: 0,

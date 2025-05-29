@@ -174,6 +174,7 @@ const HomeScreen = ({ navigation }) => {
         console.log('Location published to MQTT');
       } else {
         console.warn('Missing MQTT connection, deviceId, or user');
+        console.log(userId);
       }
     } catch (err) {
       console.error('Error sending location:', err);
@@ -185,7 +186,7 @@ const HomeScreen = ({ navigation }) => {
       const userId = await AsyncStorage.getItem('userId');
 
       if (userId) {
-        await fetch('http://100.76.67.50:3001/users/logout', {
+        await fetch('http://100.117.101.70:3001/users/logout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -195,6 +196,8 @@ const HomeScreen = ({ navigation }) => {
       }
 
       await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('userId');
+      console.log('Removed userId');
       setUser(null);
 
       navigation.reset({

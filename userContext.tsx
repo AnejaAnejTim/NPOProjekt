@@ -17,18 +17,9 @@ interface UserContextType {
 export const UserContext = React.createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const saveUserId = async () => {
-      if (user?._id) {
-        await AsyncStorage.setItem('userId', user._id);
-      }
-    };
-    saveUserId();
-  }, [user]);
 
   const refreshUser = async (): Promise<boolean> => {
     setLoading(true);
@@ -42,7 +33,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
 
-      const response = await fetch('http://100.76.67.50:3001/users/appValidation', {
+      const response = await fetch('http://100.117.101.70:3001/users/appValidation', {
         headers: {
           Authorization: `Bearer ${storedToken}`,
           'Content-Type': 'application/json',
@@ -64,7 +55,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         } else {
           const userData = await response.json();
           setUser(userData);
-          await AsyncStorage.setItem('userId', userData._id);
           setLoading(false);
           return true;
         }

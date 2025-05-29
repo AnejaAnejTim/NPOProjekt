@@ -3,11 +3,8 @@ import { UserContext } from './userContext';
 import GetLocation from 'react-native-get-location';
 import init from 'react_native_mqtt';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Alert, Text, TouchableOpacity} from 'react-native';
-import Navigation from './Navigation';
-
-import {StatusBar, StyleSheet, useColorScheme, View} from 'react-native';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+import { Alert, Text, TouchableOpacity, View, StatusBar, StyleSheet, useColorScheme } from 'react-native';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 init({
   size: 10000,
@@ -20,13 +17,14 @@ init({
 
 const HomeScreen = ({ navigation }) => {
   const isDarkMode = useColorScheme() === 'dark';
-
   const { user, token, refreshUser, setUser, loading } = useContext(UserContext);
+
   const [location, setLocation] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [mqttClient, setMqttClient] = useState(null);
   const [deviceId, setDeviceId] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [reconnectCountdown, setReconnectCountdown] = useState(10);
 
   useEffect(() => {
     setAuthChecked(true);
@@ -56,7 +54,7 @@ const HomeScreen = ({ navigation }) => {
         });
       })
       .catch(error => {
-        const {code, message} = error;
+        const { code, message } = error;
         console.warn('Location error:', code, message);
       });
   };
@@ -140,13 +138,23 @@ const HomeScreen = ({ navigation }) => {
         !mqttClient.isConnected() &&
         connectionStatus.startsWith('Disconnected')
       ) {
-        console.log('🔁 Attempting auto-reconnect to MQTT...');
+        console.log('Attempting auto-reconnect to MQTT...');
         reconnect();
+        setReconnectCountdown(10);
       }
     }, 10000);
 
     return () => clearInterval(reconnectInterval);
   }, [mqttClient, connectionStatus]);
+
+  useEffect(() => {
+    if (connectionStatus.startsWith('Disconnected')) {
+      const countdownInterval = setInterval(() => {
+        setReconnectCountdown(prev => (prev <= 1 ? 10 : prev - 1));
+      }, 1000);
+      return () => clearInterval(countdownInterval);
+    }
+  }, [connectionStatus]);
 
   const publishLocation = async (client, locationData) => {
     try {
@@ -154,7 +162,7 @@ const HomeScreen = ({ navigation }) => {
       if (client && client.isConnected() && deviceId && userId) {
         const message = new Paho.MQTT.Message(
           JSON.stringify({
-            deviceId: deviceId,
+            deviceId,
             latitude: locationData.latitude,
             longitude: locationData.longitude,
             timestamp: new Date().toISOString(),
@@ -166,10 +174,9 @@ const HomeScreen = ({ navigation }) => {
         console.log('Location published to MQTT');
       } else {
         console.warn('Missing MQTT connection, deviceId, or user');
-        console.log(userId);
       }
     } catch (err) {
-      console.error('Napaka pri pošiljanju lokacije:', err);
+      console.error('Error sending location:', err);
     }
   };
 
@@ -183,10 +190,8 @@ const HomeScreen = ({ navigation }) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({userId}),
+          body: JSON.stringify({ userId }),
         });
-
-        //await AsyncStorage.removeItem('userId');
       }
 
       await AsyncStorage.removeItem('token');
@@ -194,11 +199,11 @@ const HomeScreen = ({ navigation }) => {
 
       navigation.reset({
         index: 0,
-        routes: [{name: 'Login'}],
+        routes: [{ name: 'Login' }],
       });
     } catch (err) {
-      console.error('Napaka pri odjavi:', err);
-      Alert.alert('Napaka', 'Pri odjavi je prišlo do napake.');
+      console.error('Logout error:', err);
+      Alert.alert('Error', 'There was a problem logging out.');
     }
   };
 
@@ -244,7 +249,6 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // Show loading screen while authentication is being checked
   if (loading || !authChecked) {
     return (
       <View style={{
@@ -275,66 +279,68 @@ const HomeScreen = ({ navigation }) => {
         backgroundColor={backgroundStyle.backgroundColor}
       />
 
-      <View
-        style={{
-          backgroundColor: isDarkMode ? '#333' : '#fff',
-          borderRadius: 12,
-          padding: 20,
-          shadowColor: '#000',
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
-          elevation: 5,
-          width: '100%',
-          maxWidth: 400,
-          alignItems: 'center',
+      <View style={{
+        backgroundColor: isDarkMode ? '#333' : '#fff',
+        borderRadius: 12,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 5,
+        width: '100%',
+        maxWidth: 400,
+        alignItems: 'center',
+      }}>
+        <Text style={{
+          color: isDarkMode ? '#b0d16b' : '#b0d16b',
+          fontSize: 20,
+          fontWeight: 'bold',
+          marginBottom: 10,
         }}>
-        <Text
-          style={{
-            color: isDarkMode ? '#b0d16b' : '#b0d16b',
-            fontSize: 20,
-            fontWeight: 'bold',
-            marginBottom: 10,
-          }}>
           MQTT Status
         </Text>
-        <Text
-          style={{
-            color: isDarkMode ? 'white' : 'black',
-            fontSize: 16,
-            marginBottom: 20,
-            textAlign: 'center',
-          }}>
+
+        <Text style={{
+          color: isDarkMode ? 'white' : 'black',
+          fontSize: 16,
+          marginBottom: 10,
+          textAlign: 'center',
+        }}>
           {connectionStatus}
         </Text>
 
-        <Text
-          style={{
-            color: isDarkMode ? '#66ccff' : '#003366',
-            fontSize: 18,
-            fontWeight: 'bold',
-            marginBottom: 10,
+        {connectionStatus.startsWith('Disconnected') && (
+          <Text style={{
+            color: isDarkMode ? '#cc3300' : '#cc3300',
+            fontSize: 14,
+            marginBottom: 20,
           }}>
+            Attempting to reconnect in {reconnectCountdown}s...
+          </Text>
+        )}
+
+        <Text style={{
+          color: isDarkMode ? '#66ccff' : '#003366',
+          fontSize: 18,
+          fontWeight: 'bold',
+          marginBottom: 10,
+        }}>
           Your Location
         </Text>
-        <Text
-          style={{
-            color: isDarkMode ? 'white' : 'black',
-            fontSize: 16,
-            textAlign: 'center',
-          }}>
+        <Text style={{
+          color: isDarkMode ? 'white' : 'black',
+          fontSize: 16,
+          textAlign: 'center',
+        }}>
           {location
             ? `Latitude: ${location.latitude}\nLongitude: ${location.longitude}`
             : 'Fetching your location...'}
         </Text>
 
-        <View
-          style={{
-            marginTop: 20,
-            width: '100%',
-            backgroundColor: '#b0d16b',
-            color: '#FFFFFF',
-            borderRadius: 15,
-          }}>
+        <View style={{
+          marginTop: 20,
+          width: '100%',
+        }}>
           <TouchableOpacity
             style={{
               backgroundColor: '#b0d16b',
@@ -343,20 +349,15 @@ const HomeScreen = ({ navigation }) => {
               alignItems: 'center',
               justifyContent: 'center',
             }}
-            onPress={() => fetchLocation()}>
-            <Text
-              style={{
-                color: 'white',
-                fontSize: 16,
-                fontWeight: 'bold',
-              }}>
+            onPress={fetchLocation}>
+            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
               Reload Location
             </Text>
           </TouchableOpacity>
         </View>
 
         {connectionStatus.startsWith('Disconnected') && (
-          <View style={{marginTop: 20, width: '100%'}}>
+          <View style={{ marginTop: 20, width: '100%' }}>
             <TouchableOpacity
               style={{
                 backgroundColor: '#ff6347',
@@ -366,19 +367,15 @@ const HomeScreen = ({ navigation }) => {
                 justifyContent: 'center',
               }}
               onPress={reconnect}>
-              <Text
-                style={{
-                  color: 'white',
-                  fontSize: 16,
-                  fontWeight: 'bold',
-                }}>
-                Reconnect
+              <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+                Reconnect Now
               </Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
-      <View style={{marginTop: 20, width: '100%'}}>
+
+      <View style={{ marginTop: 20, width: '100%' }}>
         <TouchableOpacity
           style={{
             backgroundColor: '#888',
@@ -388,12 +385,7 @@ const HomeScreen = ({ navigation }) => {
             justifyContent: 'center',
           }}
           onPress={handleLogout}>
-          <Text
-            style={{
-              color: 'white',
-              fontSize: 16,
-              fontWeight: 'bold',
-            }}>
+          <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
             Odjava
           </Text>
         </TouchableOpacity>

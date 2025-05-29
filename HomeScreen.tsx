@@ -22,7 +22,6 @@ const HomeScreen = ({ navigation }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const { user, token, refreshUser, setUser, loading } = useContext(UserContext);
-
   const [location, setLocation] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [mqttClient, setMqttClient] = useState(null);
@@ -79,9 +78,9 @@ const HomeScreen = ({ navigation }) => {
   }, [mqttClient, location]);
 
   useEffect(() => {
-    if (!authChecked) return;
+    if (!authChecked) {return;}
 
-    const host = '100.117.101.70';
+    const host = '100.76.67.50';
     const wsPort = 9001;
     const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8);
 
@@ -134,6 +133,21 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [location, mqttClient]);
 
+  useEffect(() => {
+    const reconnectInterval = setInterval(() => {
+      if (
+        mqttClient &&
+        !mqttClient.isConnected() &&
+        connectionStatus.startsWith('Disconnected')
+      ) {
+        console.log('🔁 Attempting auto-reconnect to MQTT...');
+        reconnect();
+      }
+    }, 10000);
+
+    return () => clearInterval(reconnectInterval);
+  }, [mqttClient, connectionStatus]);
+
   const publishLocation = async (client, locationData) => {
     try {
       const userId = await AsyncStorage.getItem('userId');
@@ -149,9 +163,10 @@ const HomeScreen = ({ navigation }) => {
         );
         message.destinationName = 'device/location';
         client.send(message);
-        console.log('📡 Location published to MQTT');
+        console.log('Location published to MQTT');
       } else {
         console.warn('Missing MQTT connection, deviceId, or user');
+        console.log(userId);
       }
     } catch (err) {
       console.error('Napaka pri pošiljanju lokacije:', err);
@@ -163,7 +178,7 @@ const HomeScreen = ({ navigation }) => {
       const userId = await AsyncStorage.getItem('userId');
 
       if (userId) {
-        await fetch('http://100.117.101.70:3001/users/logout', {
+        await fetch('http://100.76.67.50:3001/users/logout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -171,7 +186,7 @@ const HomeScreen = ({ navigation }) => {
           body: JSON.stringify({userId}),
         });
 
-        await AsyncStorage.removeItem('userId');
+        //await AsyncStorage.removeItem('userId');
       }
 
       await AsyncStorage.removeItem('token');
@@ -188,7 +203,7 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const reconnect = () => {
-    const host = '100.117.101.70';
+    const host = '100.76.67.50';
     const wsPort = 9001;
     const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8);
 

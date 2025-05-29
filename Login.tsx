@@ -19,7 +19,7 @@ const Login = ({ navigation }) => {
   const { user, setUser, refreshUser, loading } = useContext(UserContext)!;
 
   useEffect(() => {
-    if (loading) return;
+    if (loading) {return;}
 
     if (user) {
       navigation.reset({
@@ -32,7 +32,7 @@ const Login = ({ navigation }) => {
   const handleLogin = async () => {
     setError('');
     try {
-      const res = await fetch('http://100.117.101.70:3001/users/appLogin', {
+      const res = await fetch('http://100.76.67.50:3001/users/appLogin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

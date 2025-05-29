@@ -7,11 +7,11 @@ export interface User {
 }
 
 interface UserContextType {
-  user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  user: User;
+  setUser: React.Dispatch<React.SetStateAction<User>>;
   loading: boolean;
   token: string | null;
-  refreshUser: () => Promise<boolean>; // Make sure return type is explicit
+  refreshUser: () => Promise<boolean>;
 }
 
 export const UserContext = React.createContext<UserContextType | undefined>(undefined);
@@ -25,8 +25,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const saveUserId = async () => {
       if (user?._id) {
         await AsyncStorage.setItem('userId', user._id);
-      } else {
-        await AsyncStorage.removeItem('userId');
       }
     };
     saveUserId();
@@ -37,14 +35,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     try {
       const storedToken = await AsyncStorage.getItem('token');
       setToken(storedToken);
-      
+
       if (!storedToken) {
         setUser(null);
         setLoading(false);
         return false;
       }
 
-      const response = await fetch('http://100.117.101.70:3001/users/appValidation', {
+      const response = await fetch('http://100.76.67.50:3001/users/appValidation', {
         headers: {
           Authorization: `Bearer ${storedToken}`,
           'Content-Type': 'application/json',
@@ -66,6 +64,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         } else {
           const userData = await response.json();
           setUser(userData);
+          await AsyncStorage.setItem('userId', userData._id);
           setLoading(false);
           return true;
         }

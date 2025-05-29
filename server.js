@@ -24,7 +24,7 @@ const Location = mongoose.model('Location', {
 app.use(cors());
 app.use(express.json());
 
-const client = mqtt.connect('mqtt://100.117.101.70:1883');
+const client = mqtt.connect('mqtt://100.76.67.50:1883');
 
 client.on('connect', () => {
   console.log('📡 Povezan na MQTT broker');
